@@ -32,7 +32,7 @@ services:
       context: ./node_b
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "5435:5432"
     depends_on:
       node_a:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
       context: ./node_c
     restart: unless-stopped
     ports:
-      - "5434:5432"
+      - "5436:5432"
     depends_on:
       node_b:
         condition: service_healthy
@@ -101,7 +101,7 @@ services:
       - PGPOOL_USERNAME=postgres
       - PGPOOL_PASSWORD=postgres
     volumes:
-      - ./pgpool/conf:/usr/local/etc
+      - ./pgpool/conf:/opt/bitnami/pgpool/conf
     networks:
       - pg_net
     healthcheck:

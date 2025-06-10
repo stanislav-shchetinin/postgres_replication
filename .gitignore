@@ -1,0 +1,13 @@
+# Игнорировать каталоги с данными PostgreSQL
+node_a/data/
+node_b/data/
+node_c/data/
+
+# Игнорировать временные файлы и логи
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# Игнорировать файлы Docker
+**/.docker/ 
