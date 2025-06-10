@@ -14,6 +14,7 @@ COPY scripts/ /docker-entrypoint-initdb.d/
 COPY conf/ /etc/postgresql/
 
 # Установка прав
-RUN chown -R postgres:postgres /etc/postgresql
+RUN chown -R postgres:postgres /etc/postgresql && \
+    chmod +x /docker-entrypoint-initdb.d/*.sh
 
 USER postgres 
