@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  node_a:
+    container_name: node_a
+    build:
+      context: ./node_a
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      - PGENCODING=UTF8
+      - PGLOCALE=en_US.UTF8
+      - PGUSERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./node_a/data:/var/lib/postgresql/data
+      - ./node_a/conf:/etc/postgresql
+      - ./node_a/scripts:/docker-entrypoint-initdb.d
+    networks:
+      - pg_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node_b:
+    container_name: node_b
+    build:
+      context: ./node_b
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    depends_on:
+      node_a:
+        condition: service_healthy
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      - PGENCODING=UTF8
+      - PGLOCALE=en_US.UTF8
+      - PGUSERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./node_b/data:/var/lib/postgresql/data
+      - ./node_b/conf:/etc/postgresql
+      - ./node_b/scripts:/docker-entrypoint-initdb.d
+    networks:
+      - pg_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  node_c:
+    container_name: node_c
+    build:
+      context: ./node_c
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    depends_on:
+      node_b:
+        condition: service_healthy
+    environment:
+      - PGDATA=/var/lib/postgresql/data
+      - PGENCODING=UTF8
+      - PGLOCALE=en_US.UTF8
+      - PGUSERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./node_c/data:/var/lib/postgresql/data
+      - ./node_c/conf:/etc/postgresql
+      - ./node_c/scripts:/docker-entrypoint-initdb.d
+    networks:
+      - pg_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgpool:
+    container_name: pgpool
+    build:
+      context: ./pgpool
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+      - "9898:9898"
+    depends_on:
+      node_a:
+        condition: service_healthy
+      node_b:
+        condition: service_healthy
+      node_c:
+        condition: service_healthy
+    environment:
+      - PGPOOL_USERNAME=postgres
+      - PGPOOL_PASSWORD=postgres
+    volumes:
+      - ./pgpool/conf:/usr/local/etc
+    networks:
+      - pg_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 9999 -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  pg_net:
+    driver: bridge
